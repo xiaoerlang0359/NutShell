@@ -24,20 +24,18 @@ import nutcore.HasNutCoreParameter
 import bus.axi4._
 import utils._
 
-class RAMHelper(memByte: Int) extends BlackBox with HasNutCoreParameter {
-  val io = IO(new Bundle {
-    val clk = Input(Clock())
-    val rIdx = Input(UInt(DataBits.W))
-    val rdata = Output(UInt(DataBits.W))
-    val wIdx = Input(UInt(DataBits.W))
-    val wdata = Input(UInt(DataBits.W))
-    val wmask = Input(UInt(DataBits.W))
-    val wen = Input(Bool())
-  })
+class SramIO extends Bundle with HasNutCoreParameter {
+  val rIdx  = Output(UInt(DataBits.W))
+  val rdata = Input(UInt(DataBits.W))
+  val wIdx  = Output(UInt(DataBits.W))
+  val wdata = Output(UInt(DataBits.W))
+  val wmask = Output(UInt(DataBits.W))
+  val wen   = Output(Bool())
+  val ren   = Output(Bool())
 }
 
-class AXI4RAM[T <: AXI4Lite](_type: T = new AXI4, memByte: Int,
-  useBlackBox: Boolean = false) extends AXI4SlaveModule(_type) with HasNutCoreParameter {
+class AXI4RAM[T <: AXI4Lite](_type: T = new AXI4, memByte: Int, useBlackBox: Boolean = false)
+  extends AXI4SlaveModule(_type, if (useBlackBox) new SramIO else null) with HasNutCoreParameter {
 
   val offsetBits = log2Up(memByte)
   val offsetMask = (1 << offsetBits) - 1
@@ -49,14 +47,13 @@ class AXI4RAM[T <: AXI4Lite](_type: T = new AXI4, memByte: Int,
   val wen = in.w.fire() && inRange(wIdx)
 
   val rdata = if (useBlackBox) {
-    val mem = Module(new RAMHelper(memByte))
-    mem.io.clk := clock
-    mem.io.rIdx := rIdx
-    mem.io.wIdx := wIdx
-    mem.io.wdata := in.w.bits.data
-    mem.io.wmask := fullMask
-    mem.io.wen := wen
-    mem.io.rdata
+    io.extra.get.rIdx := rIdx
+    io.extra.get.wIdx := wIdx
+    io.extra.get.wdata := in.w.bits.data
+    io.extra.get.wmask := fullMask
+    io.extra.get.wen := wen
+    io.extra.get.ren := ren
+    io.extra.get.rdata
   } else {
     val mem = Mem(memByte / DataBytes, Vec(DataBytes, UInt(8.W)))
 

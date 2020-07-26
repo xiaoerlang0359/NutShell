@@ -13,6 +13,7 @@
 #include <verilated_vcd_c.h>	// Trace file format header
 #endif
 
+uint64_t ram_helper(paddr_t rIdx, paddr_t wIdx, paddr_t wdata, paddr_t wmask, uint8_t wen);
 
 class Emulator {
   const char *image;
@@ -124,6 +125,15 @@ class Emulator {
     while (!is_finish() && n > 0) {
       single_cycle();
       n --;
+
+      uint64_t rdata = ram_helper(
+        dut_ptr->io_ram_rIdx,
+        dut_ptr->io_ram_wIdx,
+        dut_ptr->io_ram_wdata,
+        dut_ptr->io_ram_wmask,
+        dut_ptr->io_ram_wen
+      );
+      dut_ptr->io_ram_rdata = dut_ptr->io_ram_ren ? rdata : 0;
 
       if (lastcommit - n > stuck_limit && hascommit) {
         eprintf("No instruction commits for %d cycles, maybe get stuck\n"

@@ -92,8 +92,9 @@ void init_ram(const char *img) {
   //new end
 }
 
-extern "C" void ram_helper(
-    paddr_t rIdx, paddr_t *rdata, paddr_t wIdx, paddr_t wdata, paddr_t wmask, uint8_t wen) {
-  *rdata = ram[rIdx];
+uint64_t ram_helper(
+    paddr_t rIdx, paddr_t wIdx, paddr_t wdata, paddr_t wmask, uint8_t wen) {
+  uint64_t ret = ram[rIdx];
   if (wen) { ram[wIdx] = (ram[wIdx] & ~wmask) | (wdata & wmask); }
+  return ret;
 }

@@ -24,7 +24,7 @@ import chisel3.util._
 import chisel3.util.experimental.BoringUtils
 
 import bus.axi4._
-import device.AXI4RAM
+import device.{AXI4RAM, SramIO}
 
 class DiffTestIO extends Bundle {
   val r = Output(Vec(32, UInt(64.W)))
@@ -59,6 +59,7 @@ class NutShellSimTop extends Module {
     val difftest = new DiffTestIO
     val difftestCtrl = new DiffTestCtrlIO
     val trap = new TrapIO
+    val ram = new SramIO
   })
 
   lazy val config = NutCoreConfig(FPGAPlatform = false)
@@ -105,4 +106,6 @@ class NutShellSimTop extends Module {
   BoringUtils.addSink(trap.cycleCnt, "simCycleCnt")
   BoringUtils.addSink(trap.instrCnt, "simInstrCnt")
   io.trap := trap
+
+  io.ram <> mem.io.extra.get
 }
