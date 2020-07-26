@@ -707,21 +707,10 @@ class Backend(implicit val p: NutCoreConfig) extends NutCoreModule with HasRegFi
   }
 
   if (!p.FPGAPlatform) {
-    val mon = Module(new Monitor)
-    val cycleCnt = WireInit(0.U(XLEN.W))
-    val instrCnt = WireInit(0.U(XLEN.W))
     val nutcoretrap = csrrs.io.out.bits.decode.ctrl.isNutCoreTrap && csrrs.io.out.valid
-    mon.io.clk := clock
-    mon.io.reset := reset.asBool
-    mon.io.isNutCoreTrap := nutcoretrap
-    mon.io.trapCode := csrrs.io.out.bits.decode.data.src1
-    mon.io.trapPC := csrrs.io.out.bits.decode.cf.pc
-    mon.io.cycleCnt := cycleCnt
-    mon.io.instrCnt := instrCnt
-
-    BoringUtils.addSink(cycleCnt, "simCycleCnt")
-    BoringUtils.addSink(instrCnt, "simInstrCnt")
-    BoringUtils.addSource(nutcoretrap, "nutcoretrap")
+    BoringUtils.addSource(nutcoretrap, "trapValid")
+    BoringUtils.addSource(csrrs.io.out.bits.decode.data.src1, "trapCode")
+    BoringUtils.addSource(csrrs.io.out.bits.decode.cf.pc, "trapPC")
   }
   
 }

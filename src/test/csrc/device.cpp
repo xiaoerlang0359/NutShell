@@ -22,7 +22,7 @@ void poll_event() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-      case SDL_QUIT: set_abort();
+      case SDL_QUIT: //set_abort();
 
                      // If a key was pressed
       case SDL_KEYDOWN:

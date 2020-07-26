@@ -46,10 +46,19 @@ class DiffTestIO extends Bundle {
   val scause = Output(UInt(64.W))
 }
 
+class TrapIO extends Bundle {
+  val valid = Output(Bool())
+  val code = Output(UInt(3.W))
+  val pc = Output(UInt(64.W))
+  val cycleCnt = Output(UInt(64.W))
+  val instrCnt = Output(UInt(64.W))
+}
+
 class NutShellSimTop extends Module {
   val io = IO(new Bundle{
     val difftest = new DiffTestIO
     val difftestCtrl = new DiffTestCtrlIO
+    val trap = new TrapIO
   })
 
   lazy val config = NutCoreConfig(FPGAPlatform = false)
@@ -88,4 +97,12 @@ class NutShellSimTop extends Module {
   BoringUtils.addSink(difftest.scause, "difftestScause")
   io.difftest := difftest
   io.difftestCtrl <> mmio.io.difftestCtrl
+
+  val trap = WireInit(0.U.asTypeOf(new TrapIO))
+  BoringUtils.addSink(trap.valid, "trapValid")
+  BoringUtils.addSink(trap.code, "trapCode")
+  BoringUtils.addSink(trap.pc, "trapPC")
+  BoringUtils.addSink(trap.cycleCnt, "simCycleCnt")
+  BoringUtils.addSink(trap.instrCnt, "simInstrCnt")
+  io.trap := trap
 }

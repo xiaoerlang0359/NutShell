@@ -157,21 +157,10 @@ class EXU(implicit val p: NutCoreConfig) extends NutCoreModule {
   BoringUtils.addSource(mdu.io.out.fire(), "perfCntCondMmduInstr")
   BoringUtils.addSource(csr.io.out.fire(), "perfCntCondMcsrInstr")
 
+  csr.io.nutcoretrap := io.in.bits(0).ctrl.isNutCoreTrap && io.in.valid
   if (!p.FPGAPlatform) {
-    val mon = Module(new Monitor)
-    val cycleCnt = WireInit(0.U(64.W))
-    val instrCnt = WireInit(0.U(64.W))
-    val nutcoretrap = io.in.bits(0).ctrl.isNutCoreTrap && io.in.valid
-    mon.io.clk := clock
-    mon.io.reset := reset.asBool
-    mon.io.isNutCoreTrap := nutcoretrap
-    mon.io.trapCode := io.in.bits(0).data.src1
-    mon.io.trapPC := io.in.bits(0).cf.pc
-    mon.io.cycleCnt := cycleCnt
-    mon.io.instrCnt := instrCnt
-
-    BoringUtils.addSink(cycleCnt, "simCycleCnt")
-    BoringUtils.addSink(instrCnt, "simInstrCnt")
-    BoringUtils.addSource(nutcoretrap, "nutcoretrap")
+    BoringUtils.addSource(csr.io.nutcoretrap, "trapValid")
+    BoringUtils.addSource(io.in.bits(0).data.src1, "trapCode")
+    BoringUtils.addSource(io.in.bits(0).cf.pc, "trapPC")
   }
 }

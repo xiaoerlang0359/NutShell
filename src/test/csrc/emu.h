@@ -100,8 +100,11 @@ class Emulator {
 
   }
 
+  bool is_finish() {
+    return dut_ptr->io_trap_valid;
+  }
+
   void execute_cycles(uint64_t n) {
-    extern bool is_finish();
     extern void poll_event(void);
     extern uint32_t uptime(void);
     extern void set_abort(void);
@@ -129,7 +132,7 @@ class Emulator {
 #if VM_TRACE
         tfp->close();
 #endif
-        set_abort();
+        //set_abort();
       }
 
       if (!hascommit && dut_ptr->io_difftest_thisPC == 0x80000000u) {
@@ -155,7 +158,7 @@ class Emulator {
 #if VM_TRACE
             tfp->close();
 #endif
-            set_abort();
+            //set_abort();
           }
         }
         lastcommit = n;
@@ -184,8 +187,45 @@ class Emulator {
     cache_test(max_cycles);
 #else
     execute_cycles(max_cycles);
+    display_trapinfo();
 #endif
   }
   uint64_t get_cycles() const { return cycles; }
   uint64_t get_max_cycles() const { return max_cycles; }
+
+enum {
+  STATE_GOODTRAP = 0,
+  STATE_BADTRAP,
+  STATE_ABORT,
+  STATE_RUNNING = -1
+};
+
+
+int display_trapinfo() {
+  int trapCode = dut_ptr->io_trap_code;
+  uint64_t instrCnt = dut_ptr->io_trap_instrCnt;
+  uint64_t cycleCnt = dut_ptr->io_trap_cycleCnt;
+  uint64_t trapPC = dut_ptr->io_trap_pc;
+
+  switch (trapCode) {
+    case STATE_GOODTRAP:
+      eprintf(ANSI_COLOR_GREEN "HIT GOOD TRAP at pc = 0x%" PRIx64 "\n" ANSI_COLOR_RESET, trapPC);
+      break;
+    case STATE_BADTRAP:
+      eprintf(ANSI_COLOR_RED "HIT BAD TRAP at pc = 0x%" PRIx64 "\n" ANSI_COLOR_RESET, trapPC);
+      break;
+    case STATE_ABORT:
+      eprintf(ANSI_COLOR_RED "ABORT at pc = 0x%" PRIx64 "\n" ANSI_COLOR_RESET, trapPC);
+      break;
+    case STATE_RUNNING:
+      eprintf(ANSI_COLOR_RED "Timeout after %" PRIx64 " cycles\n" ANSI_COLOR_RESET, max_cycles);
+      break;
+  }
+
+  double ipc = (double)instrCnt / cycleCnt;
+  eprintf(ANSI_COLOR_MAGENTA "total guest instructions = %" PRIu64 "\n" ANSI_COLOR_RESET, instrCnt);
+  eprintf(ANSI_COLOR_MAGENTA "instrCnt = %" PRIu64 ", cycleCnt = %" PRIu64 ", IPC = %lf\n" ANSI_COLOR_RESET,
+      instrCnt, cycleCnt, ipc);
+  return trapCode != STATE_GOODTRAP;
+}
 };

@@ -177,6 +177,7 @@ trait HasExceptionNO {
 class CSRIO extends FunctionUnitIO {
   val cfIn = Flipped(new CtrlFlowIO)
   val redirect = new RedirectIO
+  val nutcoretrap = Input(Bool())
   // for exception check
   val instrValid = Input(Bool())
   val isBackendException = Input(Bool())
@@ -890,8 +891,6 @@ class CSR(implicit val p: NutCoreConfig) extends NutCoreModule with HasCSRConst{
     }
   }}
 
-  val nutcoretrap = WireInit(false.B)
-  BoringUtils.addSink(nutcoretrap, "nutcoretrap")
   def readWithScala(addr: Int): UInt = mapping(addr)._1
 
   if (!p.FPGAPlatform) {
@@ -902,7 +901,7 @@ class CSR(implicit val p: NutCoreConfig) extends NutCoreModule with HasCSRConst{
     if (hasPerfCnt) {
       // display all perfcnt when nutcoretrap is executed
       val PrintPerfCntToCSV = true
-      when (nutcoretrap) {
+      when (io.nutcoretrap) {
         printf("======== PerfCnt =========\n")
         perfCntList.toSeq.sortBy(_._2._1).map { case (name, (addr, boringId)) =>
           printf("%d <- " + name + "\n", readWithScala(addr)) }
