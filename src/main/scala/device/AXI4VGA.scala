@@ -83,6 +83,7 @@ class VGACtrl extends AXI4SlaveModule(new AXI4Lite, new VGACtrlBundle) with HasV
   io.extra.get.sync := sync
 }
 
+/*
 class FBHelper extends BlackBox with HasBlackBoxInline {
   val io = IO(new Bundle {
     val clk = Input(Clock())
@@ -111,6 +112,7 @@ class FBHelper extends BlackBox with HasBlackBoxInline {
       |endmodule
      """.stripMargin)
 }
+*/
 
 class AXI4VGA(sim: Boolean = false) extends Module with HasVGAParameter {
   val AXIidBits = 2
@@ -168,10 +170,10 @@ class AXI4VGA(sim: Boolean = false) extends Module with HasVGAParameter {
   io.vga.rgb := Mux(io.vga.valid, color(23, 0), 0.U)
 
   if (sim) {
-    val fbHelper = Module(new FBHelper)
-    fbHelper.io.clk := clock
-    fbHelper.io.valid := io.vga.valid
-    fbHelper.io.pixel := color
-    fbHelper.io.sync := ctrl.io.extra.get.sync
+    //val fbHelper = Module(new FBHelper)
+    //fbHelper.io.clk := clock
+    //fbHelper.io.valid := io.vga.valid
+    //fbHelper.io.pixel := color
+    //fbHelper.io.sync := ctrl.io.extra.get.sync
   }
 }

@@ -32,6 +32,7 @@ trait HasSDConst {
   def C_SIZE = NrBlock / MULT - 1
 }
 
+/*
 class SDHelper extends BlackBox with HasBlackBoxInline {
   val io = IO(new Bundle {
     val clk = Input(Clock())
@@ -62,6 +63,7 @@ class SDHelper extends BlackBox with HasBlackBoxInline {
       |endmodule
      """.stripMargin)
 }
+*/
 
 class AXI4DummySD extends AXI4SlaveModule(new AXI4Lite) with HasSDConst {
   val range = List.range(0,21)
@@ -109,12 +111,14 @@ class AXI4DummySD extends AXI4SlaveModule(new AXI4Lite) with HasSDConst {
     wdata
   }
 
+/*
   val sdHelper = Module(new SDHelper)
   sdHelper.io.clk := clock
   sdHelper.io.ren := (getOffset(raddr) === 0x40.U && io.in.ar.fire())
   sdHelper.io.setAddr := setAddr
   sdHelper.io.addr := regs(sdarg)
-  def sdRead = sdHelper.io.data
+  */
+  def sdRead = 0.U //sdHelper.io.data
 
   val mapping = Map(
     RegMap(0x00, regs(sdcmd), cmdWfn),
